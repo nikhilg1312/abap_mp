@@ -1,0 +1,689 @@
+class Z_POOL_TRANSACTIONS definition
+  public
+  final
+  create public .
+
+public section.
+
+  methods GET_U_ID
+    returning
+      value(OUTPUT_U_ID) type INTEGER .
+  methods SET_U_ID
+    importing
+      !INPUT_U_ID type INTEGER .
+  methods GET_POOL_ID
+    returning
+      value(OUTPUT_POOL_ID) type INTEGER .
+  methods SET_POOL_ID
+    importing
+      !INPUT_POOL_ID type INTEGER .
+  methods GET_MEMBER_ID
+    returning
+      value(OUTPUT_MEMBER_ID) type INTEGER .
+  methods SET_MEMBER_ID
+    importing
+      !INPUT_MEMBER_ID type INTEGER .
+  methods GET_CURRENT_COUNTER
+    returning
+      value(OUTPUT_CURRENT_COUNTER) type INTEGER .
+  methods SET_CURRENT_COUNTER
+    importing
+      !INPUT_CURRENT_COUNTER type INTEGER .
+  methods GET_INDIVIDUAL_MONTHLY_SHARE
+    returning
+      value(OUTPUT_MONTHLY_SHARE) type INTEGER .
+  methods SET_INDIVIDUAL_MONTHLY_SHARE
+    importing
+      !INPUT_MONTHLY_SHARE type INTEGER .
+  methods GET_TAKEAWAY_AMOUNT
+    returning
+      value(OUTPUT_TAKEAWAY_AMOUNT) type INTEGER .
+  methods SET_TAKEAWAY_AMOUNT
+    importing
+      !INPUT_TAKEAWAY_AMOUNT type INTEGER .
+  methods GET_PAYMENT_DATE
+    returning
+      value(OUTPUT_PAYMENT_DATE) type /BI0/OIDATE .
+  methods SET_PAYMENT_DATE
+    importing
+      !INPUT_PAYMENT_DATE type /BI0/OIDATE .
+  methods GET_TAKEAWAY_DATE
+    returning
+      value(OUTPUT_TAKEAWAY_DATE) type /BI0/OIDATE .
+  methods SET_TAKEAWAY_DATE
+    importing
+      !INPUT_TAKEAWAY_DATE type /BI0/OIDATE .
+  methods JOIN_POOL
+    importing
+      !INPUT_POOL_ID type INTEGER
+      !INPUT_MEMBER_ID type INTEGER .
+  methods MAKE_PAYMENT
+    importing
+      !INPUT_POOL_ID type INTEGER
+      !INPUT_MEMBER_ID type INTEGER
+    returning
+      value(OP_FEEDBK) type INTEGER .
+  methods PICK_WINNER
+    importing
+      !INPUT_POOL_ID type INTEGER
+    returning
+      value(OUTPUT_WINNER_ID) type INTEGER .
+  methods CONSTRUCTOR .
+  methods IS_MEMBER
+    importing
+      !INPUT_POOL_ID type INTEGER
+      !INPUT_MEMBER_ID type INTEGER
+    returning
+      value(OUTPUT_IS_VALID) type INTEGER .
+  methods IS_STRENGHT_FULL
+    importing
+      !INPUT_POOL_ID type INTEGER
+    returning
+      value(OUTPUT_IS_VALID) type INTEGER .
+protected section.
+private section.
+
+  data U_ID type INTEGER .
+  data POOL_ID type INTEGER .
+  data MEMBER_ID type INTEGER .
+  data CURRENT_COUNTER type INTEGER .
+  data INDIVIDUAL_MONTHLY_SHARE type INTEGER .
+  data WINNER_FLAG type INTEGER .
+  data TAKEAWAY_AMOUNT type INTEGER .
+  data PAYMENT_DATE type /BI0/OIDATE .
+  data TAKEAWAY_DATE type /BI0/OIDATE .
+
+  methods IS_WINNER_FOR_CC
+    importing
+      !INPUT_POOL_ID type INTEGER
+    returning
+      value(OUTPUT_IS_VALID) type INTEGER .
+  methods IS_MEMBER_PAID_FOR_CC
+    importing
+      !INPUT_MEMBER_ID type INTEGER
+      !INPUT_POOL_ID type INTEGER
+    returning
+      value(OUTPUT_IS_VALID) type INTEGER .
+  methods COUNT_OF_PEOPLE_PAID
+    importing
+      !INPUT_POOL_ID type INTEGER
+    returning
+      value(OUTPUT_COUNTER) type INTEGER .
+  methods UPDATE_COUNTER
+    importing
+      !INPUT_POOL_ID type INTEGER
+    returning
+      value(OUTPUT_COUNT) type INTEGER .
+  methods INSERT_BLANK_TRANSACTION
+    importing
+      !INPUT_POOL_TRANS_WA type ZPOOLTRANSACTION .
+  methods FIND_MAX_ID
+    returning
+      value(OUTPUT_MAX_ID) type INTEGER .
+  methods HELPER_FIND_REST_WINNER
+    importing
+      !INPUT_POOL_ID type INTEGER
+    returning
+      value(OUTPUT_MEMBER_ID) type INTEGER .
+  methods HELPER_ADD_WINNER
+    importing
+      !INPUT_POOL_ID type INTEGER
+      !INPUT_MEMBER_ID type INTEGER .
+
+ENDCLASS.
+
+
+
+CLASS Z_POOL_TRANSACTIONS IMPLEMENTATION.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->CONSTRUCTOR
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method CONSTRUCTOR.
+
+  CURRENT_COUNTER = -1.
+  WINNER_FLAG = -1.
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method Z_POOL_TRANSACTIONS->COUNT_OF_PEOPLE_PAID
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* | [<-()] OUTPUT_COUNTER                 TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method COUNT_OF_PEOPLE_PAID.
+
+  SELECT COUNT( * ) INTO OUTPUT_COUNTER FROM ZPOOLTRANSACTION WHERE POOL_ID = INPUT_POOL_ID
+                                            AND CURRENT_COUNTER = ( SELECT MAX( POOL_COUNTER ) FROM ZPOOLDETAILS WHERE POOL_ID = INPUT_POOL_ID ).
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method Z_POOL_TRANSACTIONS->FIND_MAX_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_MAX_ID                  TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+METHOD FIND_MAX_ID.
+
+  DATA : POOL_MAX_ID TYPE INTEGER.
+
+  SELECT MAX( U_ID ) INTO POOL_MAX_ID FROM ZPOOLTRANSACTION.
+
+  OUTPUT_MAX_ID = POOL_MAX_ID + 1.
+
+ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->GET_CURRENT_COUNTER
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_CURRENT_COUNTER         TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_CURRENT_COUNTER.
+  OUTPUT_CURRENT_COUNTER = CURRENT_COUNTER.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->GET_INDIVIDUAL_MONTHLY_SHARE
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_MONTHLY_SHARE           TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_INDIVIDUAL_MONTHLY_SHARE.
+  OUTPUT_MONTHLY_SHARE = INDIVIDUAL_MONTHLY_SHARE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->GET_MEMBER_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_MEMBER_ID               TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_MEMBER_ID.
+  OUTPUT_MEMBER_ID = MEMBER_ID.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->GET_PAYMENT_DATE
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_PAYMENT_DATE            TYPE        /BI0/OIDATE
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_PAYMENT_DATE.
+  OUTPUT_PAYMENT_DATE = PAYMENT_DATE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->GET_POOL_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_ID                 TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_POOL_ID.
+  OUTPUT_POOL_ID = pool_id.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->GET_TAKEAWAY_AMOUNT
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_TAKEAWAY_AMOUNT         TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_TAKEAWAY_AMOUNT.
+  OUTPUT_TAKEAWAY_AMOUNT = TAKEAWAY_AMOUNT.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->GET_TAKEAWAY_DATE
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_TAKEAWAY_DATE           TYPE        /BI0/OIDATE
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_TAKEAWAY_DATE.
+  OUTPUT_TAKEAWAY_DATE = TAKEAWAY_DATE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->GET_U_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_U_ID                    TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_U_ID.
+  OUTPUT_U_ID = u_id.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method Z_POOL_TRANSACTIONS->HELPER_ADD_WINNER
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* | [--->] INPUT_MEMBER_ID                TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method HELPER_ADD_WINNER.
+   data: lv_current_counter TYPE int4,
+         LV_TAKE_AWAY TYPE INT4,
+         wa_z_pd TYPE ZPOOLDETAILS,
+         OBJ_TEMP_PD TYPE REF TO Z_POOL_DETAILS.
+
+   CREATE OBJECT OBJ_TEMP_PD.
+
+   WA_Z_PD = OBJ_TEMP_PD->GET_POOL( INPUT_POOL_ID ).
+   LV_TAKE_AWAY = WA_Z_PD-POOL_DURATION * WA_Z_PD-POOL_MONTHLY_SHARE.
+
+  select max( current_counter ) INTO LV_CURRENT_COUNTER from ZPOOLTRANSACTION WHERE pool_id = INPUT_POOL_ID.
+
+  update ZPOOLTRANSACTION set winner_flag = 1 TAKEAWAY_AMOUNT = LV_TAKE_AWAY TAKEAWAY_DATE = SY-DATUM where pool_id = INPUT_POOL_ID and member_id = INPUT_MEMBER_ID and current_counter = LV_CURRENT_COUNTER.
+
+  update ZPOOLTRANSACTION set winner_flag = 0 where pool_id = INPUT_POOL_ID and member_id ne INPUT_MEMBER_ID and current_counter = LV_CURRENT_COUNTER.
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method Z_POOL_TRANSACTIONS->HELPER_FIND_REST_WINNER
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* | [<-()] OUTPUT_MEMBER_ID               TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+   method HELPER_FIND_REST_WINNER.
+   DATA: IT_ALL_MEM_LIST TYPE STANDARD TABLE OF ZARRAY_USAGE,
+        IT_WINNER_LIST TYPE STANDARD TABLE OF ZARRAY_USAGE,
+        IT_REMAIN_LIST TYPE STANDARD TABLE OF ZARRAY_USAGE,
+        WA_ALL_MEM_LIST TYPE ZARRAY_USAGE,
+        WA_WINNER_LIST TYPE ZARRAY_USAGE,
+        wa_ans TYPE ZARRAY_USAGE,
+        OUTER_INDEX TYPE SY-INDEX,
+        INNER_INDEX TYPE SY-INDEX.
+
+
+
+  SELECT MEMBER_ID INTO table IT_ALL_MEM_LIST FROM ZPOOLTRANSACTION WHERE POOL_ID = INPUT_POOL_ID AND CURRENT_COUNTER = -1.
+
+  SELECT MEMBER_ID INTO table IT_WINNER_LIST FROM ZPOOLTRANSACTION WHERE POOL_ID  = INPUT_POOL_ID AND WINNER_FLAG = 1.
+
+  OUTER_INDEX = 1.
+
+
+
+      LOOP AT IT_ALL_MEM_LIST INTO WA_ALL_MEM_LIST FROM OUTER_INDEX TO OUTER_INDEX.
+          INNER_INDEX = 1.
+
+                   IF IT_WINNER_LIST IS INITIAL.
+                      APPEND WA_ALL_MEM_LIST TO IT_REMAIN_LIST.
+                   ELSE.
+
+                          LOOP AT IT_WINNER_LIST INTO WA_WINNER_LIST FROM INNER_INDEX TO INNER_INDEX.
+
+                                  IF WA_ALL_MEM_LIST NE WA_WINNER_LIST.
+                                      APPEND WA_ALL_MEM_LIST TO IT_REMAIN_LIST.
+                                  ELSE.
+
+                                    DELETE IT_WINNER_LIST WHERE ELEMENT = WA_WINNER_LIST-ELEMENT.
+                                    EXIT.
+
+                                  ENDIF.
+
+                          INNER_INDEX = INNER_INDEX + 1.
+                          ENDLOOP.
+                  ENDIF.
+
+      OUTER_INDEX = OUTER_INDEX + 1.
+      ENDLOOP.
+
+
+  READ TABLE IT_REMAIN_LIST INTO WA_ANS INDEX 1.
+
+  OUTPUT_MEMBER_ID = WA_ANS-ELEMENT.
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method Z_POOL_TRANSACTIONS->INSERT_BLANK_TRANSACTION
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_TRANS_WA            TYPE        ZPOOLTRANSACTION
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method INSERT_BLANK_TRANSACTION.
+
+  data: pt_temp_obj TYPE REF TO Z_POOL_TRANSACTIONS,
+        PD_TEMP_OBJ TYPE REF TO Z_POOL_DETAILS,
+        wa_new_pt TYPE ZPOOLTRANSACTION,
+        wa_temp_pd TYPE ZPOOLDETAILS.
+
+  create OBJECT PT_TEMP_OBJ.
+  CREATE OBJECT PD_TEMP_OBJ.
+
+  WA_TEMP_PD = PD_TEMP_OBJ->GET_POOL( INPUT_POOL_TRANS_WA-POOL_ID ).
+
+  WA_NEW_PT = INPUT_POOL_TRANS_WA.
+
+  WA_NEW_PT-U_ID = PT_TEMP_OBJ->FIND_MAX_ID( ).
+  WA_NEW_PT-CURRENT_COUNTER = WA_TEMP_PD-POOL_COUNTER.
+  WA_NEW_PT-WINNER_FLAG = -1.
+  WA_NEW_PT-INDIVIUAL_MONTH = WA_TEMP_PD-POOL_MONTHLY_SHARE.
+
+  INSERT ZPOOLTRANSACTION FROM WA_NEW_PT.
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->IS_MEMBER
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* | [--->] INPUT_MEMBER_ID                TYPE        INTEGER
+* | [<-()] OUTPUT_IS_VALID                TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method IS_MEMBER.
+
+  SELECT COUNT( * ) INTO OUTPUT_IS_VALID FROM ZPOOLTRANSACTION WHERE POOL_ID = INPUT_POOL_ID AND MEMBER_ID = INPUT_MEMBER_ID AND CURRENT_COUNTER = -1.
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method Z_POOL_TRANSACTIONS->IS_MEMBER_PAID_FOR_CC
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_MEMBER_ID                TYPE        INTEGER
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* | [<-()] OUTPUT_IS_VALID                TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method IS_MEMBER_PAID_FOR_CC.
+
+
+        SELECT COUNT( * ) INTO OUTPUT_IS_VALID FROM ZPOOLTRANSACTION WHERE POOL_ID = INPUT_POOL_ID AND MEMBER_ID  = INPUT_MEMBER_ID
+          AND CURRENT_COUNTER = ( SELECT MAX( CURRENT_COUNTER ) FROM ZPOOLTRANSACTION  WHERE POOL_ID = INPUT_POOL_ID  ).
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->IS_STRENGHT_FULL
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* | [<-()] OUTPUT_IS_VALID                TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+METHOD IS_STRENGHT_FULL.
+
+  DATA : TEMP_PD TYPE REF TO Z_POOL_DETAILS,
+         STRENGHT TYPE I,
+         C_STRENGHT TYPE I,
+         WA_TEMP_PD TYPE ZPOOLDETAILS.
+
+  CREATE OBJECT TEMP_PD.
+
+  WA_TEMP_PD = TEMP_PD->GET_POOL( INPUT_POOL_ID ).
+
+  STRENGHT = WA_TEMP_PD-POOL_STRENGTH.
+
+  SELECT COUNT( * ) INTO C_STRENGHT FROM ZPOOLTRANSACTION WHERE POOL_ID = INPUT_POOL_ID AND CURRENT_COUNTER = -1.
+
+  IF C_STRENGHT < STRENGHT.
+
+    OUTPUT_IS_VALID = 0.
+
+  ELSEIF C_STRENGHT = STRENGHT.
+
+    OUTPUT_IS_VALID = 1.
+
+  ENDIF.
+
+ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method Z_POOL_TRANSACTIONS->IS_WINNER_FOR_CC
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* | [<-()] OUTPUT_IS_VALID                TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method IS_WINNER_FOR_CC.
+
+  SELECT COUNT( * ) INTO OUTPUT_IS_VALID FROM ZPOOLTRANSACTION WHERE POOL_ID = INPUT_POOL_ID AND WINNER_FLAG = 1 AND CURRENT_COUNTER = ( SELECT MAX( POOL_COUNTER ) FROM ZPOOLDETAILS  WHERE POOL_ID = INPUT_POOL_ID  ).
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->JOIN_POOL
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* | [--->] INPUT_MEMBER_ID                TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+METHOD JOIN_POOL.
+
+  DATA: TEMP_PT TYPE REF TO Z_POOL_TRANSACTIONS,
+        TEMP_PD TYPE REF TO Z_POOL_DETAILS,
+        WA_TEMP_PD TYPE ZPOOLDETAILS,
+        WA_MEMBER TYPE ZPOOLTRANSACTION,
+        IS_POOL_FULL TYPE I,
+        CURRENT_STRENGHT TYPE I,
+        IS_MEMBER TYPE I.
+
+  CREATE OBJECT TEMP_PT.
+  CREATE OBJECT TEMP_PD.
+
+  IS_POOL_FULL = TEMP_PT->IS_STRENGHT_FULL( INPUT_POOL_ID = INPUT_POOL_ID ).
+  IS_MEMBER = TEMP_PT->IS_MEMBER( INPUT_MEMBER_ID = INPUT_MEMBER_ID INPUT_POOL_ID = INPUT_POOL_ID ).
+
+  WA_TEMP_PD = TEMP_PD->GET_POOL( INPUT_POOL_ID = INPUT_POOL_ID ).
+
+  IF IS_POOL_FULL = 0 AND IS_MEMBER = 0.
+
+    WA_MEMBER-U_ID = TEMP_PT->FIND_MAX_ID( ).
+    WA_MEMBER-POOL_ID = INPUT_POOL_ID.
+    WA_MEMBER-MEMBER_ID = INPUT_MEMBER_ID.
+    WA_MEMBER-CURRENT_COUNTER = -1.
+    WA_MEMBER-WINNER_FLAG = -1.
+
+    INSERT ZPOOLTRANSACTION FROM WA_MEMBER.
+
+  ENDIF.
+
+ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->MAKE_PAYMENT
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* | [--->] INPUT_MEMBER_ID                TYPE        INTEGER
+* | [<-()] OP_FEEDBK                      TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+METHOD MAKE_PAYMENT.
+
+  DATA: TEMP_PT TYPE REF TO Z_POOL_TRANSACTIONS,
+        TEMP_PD TYPE REF TO Z_POOL_DETAILS,
+        NEW_TX TYPE ZPOOLTRANSACTION,
+        FETCHED_POOL TYPE ZPOOLDETAILS,
+        MAX_CC TYPE I,
+        IS_WINNER TYPE I,
+        IS_MEMBER TYPE I,
+        COUNT_OF_PAID TYPE I,
+        STRENGHT TYPE I.
+
+  CREATE OBJECT TEMP_PT.
+  CREATE OBJECT TEMP_PD.
+
+
+
+  FETCHED_POOL = TEMP_PD->GET_POOL( INPUT_POOL_ID = INPUT_POOL_ID ).
+  MAX_CC = FETCHED_POOL-POOL_COUNTER.
+  STRENGHT = FETCHED_POOL-POOL_STRENGTH.
+
+  IS_WINNER = TEMP_PT->IS_WINNER_FOR_CC( INPUT_POOL_ID = INPUT_POOL_ID ).
+  IS_MEMBER = TEMP_PT->IS_MEMBER( INPUT_MEMBER_ID = INPUT_MEMBER_ID INPUT_POOL_ID = INPUT_POOL_ID ).
+  COUNT_OF_PAID = TEMP_PT->COUNT_OF_PEOPLE_PAID( INPUT_POOL_ID ).
+
+  IF ( MAX_CC <= STRENGHT ) AND ( IS_WINNER = 0 ) AND ( IS_MEMBER = 1 ).
+
+    IF COUNT_OF_PAID = STRENGHT.
+      IF MAX_CC = -1.
+        TEMP_PT->UPDATE_COUNTER( INPUT_POOL_ID ).
+      ELSE.
+        OP_FEEDBK = 9.
+        RETURN.
+      ENDIF.
+    ENDIF.
+
+    NEW_TX-POOL_ID = INPUT_POOL_ID.
+    NEW_TX-MEMBER_ID = INPUT_MEMBER_ID.
+    NEW_TX-INDIVIUAL_MONTH = FETCHED_POOL-POOL_MONTHLY_SHARE.
+    NEW_TX-WINNER_FLAG = 0.
+    NEW_TX-PAYMENT_DATE = SY-DATUM.
+
+    TEMP_PT->INSERT_BLANK_TRANSACTION( NEW_TX ).
+
+  ENDIF.
+
+
+ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->PICK_WINNER
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* | [<-()] OUTPUT_WINNER_ID               TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method PICK_WINNER.
+  DATA: LV_TEMP_PT TYPE REF TO Z_POOL_TRANSACTIONS,
+         LV_WIN_MEM_ID TYPE INT4,
+         LV_TEMP_PD TYPE REF TO Z_POOL_DETAILS,
+         WA_LV_PD TYPE ZPOOLDETAILS,
+         LV_STRENGHT TYPE INT4,
+         LV_COUNTER TYPE INT4.
+
+  CREATE OBJECT LV_TEMP_PD.
+  CREATE OBJECT LV_TEMP_PT.
+
+  WA_LV_PD = LV_TEMP_PD->GET_POOL( INPUT_POOL_ID ).
+
+  IF ( WA_LV_PD-POOL_COUNTER LE WA_LV_PD-POOL_STRENGTH ) AND ( LV_TEMP_PT->IS_WINNER_FOR_CC( INPUT_POOL_ID ) = 0 ) .
+
+    LV_WIN_MEM_ID = LV_TEMP_PT->HELPER_FIND_REST_WINNER( INPUT_POOL_ID ).
+    OUTPUT_WINNER_ID = LV_WIN_MEM_ID.
+
+    LV_TEMP_PT->HELPER_ADD_WINNER( INPUT_POOL_ID = INPUT_POOL_ID INPUT_MEMBER_ID = LV_WIN_MEM_ID ).
+
+    LV_TEMP_PT->UPDATE_COUNTER( INPUT_POOL_ID ).
+
+  ENDIF.
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->SET_CURRENT_COUNTER
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_CURRENT_COUNTER          TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_CURRENT_COUNTER.
+  CURRENT_COUNTER = INPUT_CURRENT_COUNTER.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->SET_INDIVIDUAL_MONTHLY_SHARE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_MONTHLY_SHARE            TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_INDIVIDUAL_MONTHLY_SHARE.
+  INDIVIDUAL_MONTHLY_SHARE = INPUT_MONTHLY_SHARE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->SET_MEMBER_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_MEMBER_ID                TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_MEMBER_ID.
+  MEMBER_ID = INPUT_MEMBER_ID.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->SET_PAYMENT_DATE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_PAYMENT_DATE             TYPE        /BI0/OIDATE
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_PAYMENT_DATE.
+  PAYMENT_DATE = INPUT_PAYMENT_DATE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->SET_POOL_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_POOL_ID.
+  pool_id = INPUT_POOL_ID.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->SET_TAKEAWAY_AMOUNT
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_TAKEAWAY_AMOUNT          TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_TAKEAWAY_AMOUNT.
+  TAKEAWAY_AMOUNT = INPUT_TAKEAWAY_AMOUNT.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->SET_TAKEAWAY_DATE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_TAKEAWAY_DATE            TYPE        /BI0/OIDATE
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_TAKEAWAY_DATE.
+  TAKEAWAY_DATE = INPUT_TAKEAWAY_DATE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_TRANSACTIONS->SET_U_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_U_ID                     TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_U_ID.
+  u_id = INPUT_U_ID.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method Z_POOL_TRANSACTIONS->UPDATE_COUNTER
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* | [<-()] OUTPUT_COUNT                   TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method UPDATE_COUNTER.
+
+  DATA: TEMP_COUNTER TYPE I,
+        PD_TEMP_OBJ TYPE REF TO Z_POOL_DETAILS,
+        wa_temp_pd TYPE ZPOOLDETAILS.
+
+  CREATE OBJECT PD_TEMP_OBJ.
+
+  WA_TEMP_PD = PD_TEMP_OBJ->GET_POOL( INPUT_POOL_ID ).
+
+  TEMP_COUNTER = WA_TEMP_PD-POOL_COUNTER.
+
+  IF TEMP_COUNTER = -1.
+      OUTPUT_COUNT = 1.
+  ELSE.
+    OUTPUT_COUNT = TEMP_COUNTER + 1.
+  ENDIF.
+
+  UPDATE ZPOOLDETAILS SET POOL_COUNTER = OUTPUT_COUNT WHERE POOL_ID = INPUT_POOL_ID.
+
+endmethod.
+ENDCLASS.

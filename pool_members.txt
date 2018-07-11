@@ -1,0 +1,114 @@
+class Z_MEMBER definition
+  public
+  create public .
+
+public section.
+
+  data MEMBERID type INTEGER .
+
+  methods GETMEMBERID
+    returning
+      value(OUTPUTMEMBERID) type INTEGER .
+  methods SETMEMBERID
+    importing
+      !INPUTMEMBERID type INTEGER .
+  methods GET_MEMBERNAME
+    returning
+      value(OUTPUT_MEMBERNAME) type STRING .
+  methods SET_MEMBERNAME
+    importing
+      !INPUT_MEMBERNAME type BCS_VISNAME .
+  methods INSERT_MEMBER
+    importing
+      !INPUT_MEMBERNAME type ref to Z_MEMBER .
+protected section.
+private section.
+
+  data MEMBERNAME type BCS_VISNAME .
+
+  methods FIND_MAX_ID
+    returning
+      value(OUTPUT_MAX_ID) type INTEGER .
+ENDCLASS.
+
+
+
+CLASS Z_MEMBER IMPLEMENTATION.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method Z_MEMBER->FIND_MAX_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_MAX_ID                  TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method FIND_MAX_ID.
+
+  data : q_max_id TYPE integer.
+
+  select max( member_id ) into Q_MAX_ID from zmember.
+
+    OUTPUT_MAX_ID = Q_MAX_ID + 1.
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_MEMBER->GETMEMBERID
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUTMEMBERID                 TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GETMEMBERID.
+  OUTPUTMEMBERID = MEMBERID.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_MEMBER->GET_MEMBERNAME
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_MEMBERNAME              TYPE        STRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_MEMBERNAME.
+  OUTPUT_MEMBERNAME = MEMBERNAME.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_MEMBER->INSERT_MEMBER
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_MEMBERNAME               TYPE REF TO Z_MEMBER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method INSERT_MEMBER.
+
+  data:
+        new_member TYPE zmember,
+        it_new_member TYPE STANDARD TABLE OF zmember.
+
+  NEW_MEMBER-MEMBER_ID = INPUT_MEMBERNAME->FIND_MAX_ID( ).
+  NEW_MEMBER-MEMBER_NAME = INPUT_MEMBERNAME->GET_MEMBERNAME( ).
+
+  APPEND NEW_MEMBER to IT_NEW_MEMBER.
+
+  insert ZMEMBER from table IT_NEW_MEMBER.
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_MEMBER->SETMEMBERID
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUTMEMBERID                  TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SETMEMBERID.
+  MEMBERID = INPUTMEMBERID.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_MEMBER->SET_MEMBERNAME
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_MEMBERNAME               TYPE        BCS_VISNAME
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_MEMBERNAME.
+  MEMBERNAME = INPUT_MEMBERNAME.
+endmethod.
+ENDCLASS.

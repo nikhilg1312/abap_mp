@@ -1,0 +1,369 @@
+*&---------------------------------------------------------------------*
+*& Report  Z_MONEY_POOL
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT  Z_MONEY_POOL.
+
+TABLES ZPOOLDETAILS.
+
+DATA:Z_INVESTMENTS TYPE C,
+      Z_RETURNS TYPE C,
+      Z_LV_POOL_ID TYPE ZPOOLDETAILS-POOL_ID,
+      Z_LV_MEMBER_ID TYPE ZMEMBER-MEMBER_ID,
+      IT_POOL_DETAILS TYPE TABLE OF ZPOOLDETAILS,
+      WA_POOL_DETAILS TYPE ZPOOLDETAILS,
+      lw_layout TYPE lvc_s_layo,
+      grid TYPE REF TO CL_GUI_ALV_GRID,
+      LW_FIELDCAT TYPE LVC_S_FCAT,
+      LT_FIELDCAT TYPE LVC_T_FCAT,
+      Z_LV_POOL_TRANSACTION TYPE REF TO Z_POOL_TRANSACTIONS,
+      CONTAINER TYPE REF TO CL_GUI_CUSTOM_CONTAINER.
+
+
+
+class Z_ALV definition.
+
+  PUBLIC SECTION.
+    METHODS EHDC FOR EVENT DOUBLE_CLICK OF CL_GUI_ALV_GRID IMPORTING E_ROW E_COLUMN.
+ENDCLASS.
+
+CLASS Z_ALV IMPLEMENTATION.
+
+  method EHDC.
+
+    READ TABLE IT_POOL_DETAILS INTO WA_POOL_DETAILS INDEX E_ROW-INDEX.
+    IF E_COLUMN-FIELDNAME = 'POOL_ID'.
+      Z_LV_POOL_ID = WA_POOL_DETAILS-POOL_ID.
+      CALL SCREEN 9001.
+    ENDIF.
+  endmethod.
+
+ENDCLASS.
+
+*&---------------------------------------------------------------------*
+*&      Module  STATUS_9001  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE STATUS_9001 OUTPUT.
+  SET PF-STATUS 'Z_9001_STAT'.
+  SET TITLEBAR '9001'.
+
+  Z_INVESTMENTS = '100'.
+  Z_RETURNS = '300'.
+ENDMODULE.                 " STATUS_9001  OUTPUT
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_9001  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE USER_COMMAND_9001 INPUT.
+  CASE SY-UCOMM.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+    WHEN 'FCT_MEMBER'.
+      CALL SCREEN 9002.
+    WHEN 'FCT_ADMIN'.
+      CALL SCREEN 9005.
+    WHEN 'Z_PID'.
+      MESSAGE i000(Z_msg) WITH Z_LV_POOL_ID.
+  ENDCASE.
+ENDMODULE.                 " USER_COMMAND_9001  INPUT
+*&---------------------------------------------------------------------*
+*&      Module  STATUS_9002  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE STATUS_9002 OUTPUT.
+  SET PF-STATUS 'MEMPRTL'.
+  SET TITLEBAR '9002'.
+
+  SELECT *
+    FROM ZPOOLDETAILS
+    INTO TABLE IT_POOL_DETAILS.
+
+  IF IT_POOL_DETAILS IS INITIAL.
+    MESSAGE 'Please Fill All the Fields' TYPE 'E'.
+  ENDIF.
+
+  REFRESH LT_FIELDCAT.
+  CLEAR: LW_FIELDCAT.
+  LW_FIELDCAT-FIELDNAME = 'POOL_ID'.
+  LW_FIELDCAT-SELTEXT = 'POOL_ID'.
+  LW_FIELDCAT-COLTEXT = 'POOL_ID'.
+* LW_FIELDCAT-EMPHASIZE = 'C610'.
+  LW_FIELDCAT-COL_POS = 1.
+  LW_FIELDCAT-OUTPUTLEN = 18.
+  APPEND LW_FIELDCAT TO LT_FIELDCAT.
+
+  CLEAR: LW_FIELDCAT.
+  LW_FIELDCAT-FIELDNAME = 'POOL_ID'.
+  LW_FIELDCAT-SELTEXT = 'POOL_ID'.
+  LW_FIELDCAT-COLTEXT = Z_LV_POOL_ID.
+  LW_FIELDCAT-EMPHASIZE = 'C610'.
+  LW_FIELDCAT-COL_POS = 2.
+  LW_FIELDCAT-OUTPUTLEN = 18.
+  APPEND LW_FIELDCAT TO LT_FIELDCAT.
+
+  LW_LAYOUT-CWIDTH_OPT = 'X'.
+
+  CREATE OBJECT CONTAINER
+    EXPORTING
+      CONTAINER_NAME = 'Z_MEMBER_POOLS'.
+  CREATE OBJECT GRID
+    EXPORTING
+      I_PARENT = CONTAINER.
+  DATA ZCLV TYPE REF TO Z_ALV.
+  CREATE OBJECT ZCLV.
+  SET HANDLER ZCLV->EHDC FOR GRID.
+
+  CALL METHOD GRID->SET_TABLE_FOR_FIRST_DISPLAY
+    EXPORTING
+      IS_LAYOUT       = LW_LAYOUT
+    CHANGING
+      IT_OUTTAB       = IT_POOL_DETAILS
+      IT_FIELDCATALOG = LT_FIELDCAT.
+
+ENDMODULE.                 " STATUS_9002  OUTPUT
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_9002  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE USER_COMMAND_9002 INPUT.
+  CASE SY-UCOMM.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 9001.
+    WHEN 'FCT_JOIN_POOL'.
+      CALL SCREEN 9003.
+
+  ENDCASE.
+ENDMODULE.                 " USER_COMMAND_9002  INPUT
+*&---------------------------------------------------------------------*
+*&      Module  STATUS_9003  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE STATUS_9003 OUTPUT.
+  SET PF-STATUS 'JOINPOOL'.
+  SET TITLEBAR '9003'.
+
+ENDMODULE.                 " STATUS_9003  OUTPUT
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_9003  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE USER_COMMAND_9007 INPUT.
+  CASE SY-UCOMM.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 9001.
+
+  ENDCASE.
+ENDMODULE.                 " USER_COMMAND_9003  INPUT
+*&---------------------------------------------------------------------*
+*&      Module  CREATE_POOL_9003  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE CREATE_POOL_9007 INPUT.
+  CASE SY-UCOMM.
+
+    WHEN 'FCT_CREATE_POOL'.
+      IF ZPOOLDETAILS-POOL_NAME IS NOT INITIAL.
+        IF ZPOOLDETAILS-POOL_MEETUP_DATE > ZPOOLDETAILS-POOL_DEPOSIT_DATE.
+          IF ZPOOLDETAILS-POOL_MEETUP_DATE > 28 OR ZPOOLDETAILS-POOL_DEPOSIT_DATE > 28.
+            MESSAGE 'Meetup Date And Deposit date must be less than 28' TYPE 'E'.
+          ELSE.
+            IF ZPOOLDETAILS-POOL_DURATION = ZPOOLDETAILS-POOL_STRENGTH.
+              MESSAGE 'Valid Input' TYPE 'I'.
+              DATA: NEW_POOL TYPE  ZPOOLDETAILS,
+                    NEW_POOLDETAILS TYPE REF TO Z_POOL_DETAILS.
+              CREATE OBJECT NEW_POOLDETAILS.
+
+              NEW_POOL-POOL_NAME = ZPOOLDETAILS-POOL_NAME.
+              NEW_POOL-POOL_ADMIN_ID = ZPOOLDETAILS-POOL_ADMIN_ID.
+              NEW_POOL-POOL_DEPOSIT_DATE = ZPOOLDETAILS-POOL_DEPOSIT_DATE.
+              NEW_POOL-POOL_END_DATE = ZPOOLDETAILS-POOL_END_DATE.
+              NEW_POOL-POOL_START_DATE = ZPOOLDETAILS-POOL_START_DATE.
+              NEW_POOL-POOL_DURATION = ZPOOLDETAILS-POOL_STRENGTH.
+              NEW_POOL-POOL_MONTHLY_SHARE = ZPOOLDETAILS-POOL_MONTHLY_SHARE.
+              NEW_POOL-POOL_MEETUP_DATE = ZPOOLDETAILS-POOL_MEETUP_DATE.
+              NEW_POOL-POOL_STRENGTH = ZPOOLDETAILS-POOL_STRENGTH.
+              NEW_POOL-POOL_TAKEAWAY = ZPOOLDETAILS-POOL_TAKEAWAY.
+              NEW_POOLDETAILS->INSERT_POOL( NEW_POOL ).
+            ELSE.
+              MESSAGE 'Pool strength must be equal to pool Duration' TYPE 'E'.
+            ENDIF.
+          ENDIF.
+        ELSE.
+          MESSAGE 'Meetup Date must be greater or equal to Deposit date' TYPE 'E'.
+        ENDIF.
+      ELSE.
+        MESSAGE 'Please Fill All the Fields' TYPE 'E'.
+      ENDIF.
+
+  ENDCASE.
+ENDMODULE.                 " CREATE_POOL_9003  INPUT
+*&---------------------------------------------------------------------*
+*&      Module  STATUS_9005  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE STATUS_9005 OUTPUT.
+  SET PF-STATUS 'ZADMINPRTL'.
+  SET TITLEBAR '9005'.
+  SELECT *
+    FROM ZPOOLDETAILS
+    INTO TABLE IT_POOL_DETAILS.
+
+  IF IT_POOL_DETAILS IS INITIAL.
+    MESSAGE 'Please Fill All the Fields' TYPE 'E'.
+  ENDIF.
+
+  REFRESH LT_FIELDCAT.
+  CLEAR: LW_FIELDCAT.
+  LW_FIELDCAT-FIELDNAME = 'POOL_ID'.
+  LW_FIELDCAT-SELTEXT = 'POOL_ID'.
+  LW_FIELDCAT-COLTEXT = 'POOL_ID'.
+* LW_FIELDCAT-EMPHASIZE = 'C610'.
+  LW_FIELDCAT-COL_POS = 1.
+  LW_FIELDCAT-OUTPUTLEN = 18.
+  APPEND LW_FIELDCAT TO LT_FIELDCAT.
+
+  CLEAR: LW_FIELDCAT.
+  LW_FIELDCAT-FIELDNAME = 'POOL_ID'.
+  LW_FIELDCAT-SELTEXT = 'POOL_ID'.
+  LW_FIELDCAT-COLTEXT = 'POOL NAME'.
+  LW_FIELDCAT-EMPHASIZE = 'C610'.
+  LW_FIELDCAT-COL_POS = 2.
+  LW_FIELDCAT-OUTPUTLEN = 18.
+  APPEND LW_FIELDCAT TO LT_FIELDCAT.
+
+  LW_LAYOUT-CWIDTH_OPT = 'X'.
+
+  CREATE OBJECT CONTAINER
+    EXPORTING
+      CONTAINER_NAME = 'CONTAINER'.
+  CREATE OBJECT GRID
+    EXPORTING
+      I_PARENT = CONTAINER.
+  DATA ZMEM_POOL TYPE REF TO Z_ALV.
+  CREATE OBJECT ZMEM_POOL.
+  SET HANDLER ZMEM_POOL->EHDC FOR GRID.
+
+  CALL METHOD GRID->SET_TABLE_FOR_FIRST_DISPLAY
+    EXPORTING
+      IS_LAYOUT       = LW_LAYOUT
+    CHANGING
+      IT_OUTTAB       = IT_POOL_DETAILS
+      IT_FIELDCATALOG = LT_FIELDCAT.
+
+ENDMODULE.                 " STATUS_9005  OUTPUT
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_9005  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE USER_COMMAND_9005 INPUT.
+  CASE SY-UCOMM.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 9001.
+    WHEN 'FCT_CRTPL_SRN'.
+      CALL SCREEN 9007.
+  ENDCASE.
+ENDMODULE.                 " USER_COMMAND_9005  INPUT
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_9003  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE USER_COMMAND_9003 INPUT.
+  CASE SY-UCOMM.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 9002.
+    WHEN 'FCT_SUB_PID'.
+      CREATE OBJECT Z_LV_POOL_TRANSACTION.
+      DATA: WA_TEMP_PD TYPE ZPOOLDETAILS,
+      WA_MEMBER TYPE ZPOOLTRANSACTION,
+      IS_POOL_FULL TYPE I,
+      IS_MEMBER TYPE I.
+      IS_POOL_FULL = Z_LV_POOL_TRANSACTION->IS_STRENGHT_FULL( INPUT_POOL_ID = 6 ).
+      IS_MEMBER = Z_LV_POOL_TRANSACTION->IS_MEMBER( INPUT_POOL_ID = 6 INPUT_MEMBER_ID = 4 ).
+      IF IS_POOL_FULL = 0.
+        IF IS_MEMBER = 0.
+          Z_LV_POOL_TRANSACTION->JOIN_POOL( INPUT_POOL_ID = 6 INPUT_MEMBER_ID = 4 ).
+          MESSAGE 'You have Joined the Pool Successfully' TYPE 'I'.
+          CALL SCREEN 9004.
+        ELSE.
+          MESSAGE 'You are already a member' TYPE 'E'.
+        ENDIF.
+      ELSE.
+        MESSAGE 'Pool is Already Full' TYPE 'E'.
+      ENDIF.
+
+  ENDCASE.
+ENDMODULE.                 " USER_COMMAND_9003  INPUT
+*&---------------------------------------------------------------------*
+*&      Module  STATUS_9004  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE STATUS_9004 OUTPUT.
+  SET PF-STATUS 'MYPOOLDET'.
+  SET TITLEBAR '9004'.
+
+ENDMODULE.                 " STATUS_9004  OUTPUT
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_9004  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE USER_COMMAND_9004 INPUT.
+  CASE SY-UCOMM.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 9002.
+    WHEN 'FCT_MAKE_PAY'.
+      MESSAGE 'Payment Made' TYPE 'I'.
+  ENDCASE.
+ENDMODULE.                 " USER_COMMAND_9004  INPUT
+*&---------------------------------------------------------------------*
+*&      Module  STATUS_9006  OUTPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE STATUS_9006 OUTPUT.
+  SET PF-STATUS 'POOLDETAILS'.
+  SET TITLEBAR '9006'.
+
+ENDMODULE.                 " STATUS_9006  OUTPUT
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_9006  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE USER_COMMAND_9006 INPUT.
+  CASE SY-UCOMM.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 9005.
+    WHEN 'FCT_PICK_WNR'.
+      MESSAGE 'WINNER IS PICKED' TYPE 'I'.
+  ENDCASE.
+ENDMODULE.                 " USER_COMMAND_9006  INPUT
+

@@ -1,0 +1,402 @@
+class Z_POOL_DETAILS definition
+  public
+  create public .
+
+public section.
+
+  methods GET_POOL_ID
+    returning
+      value(OUTPUT_POOL_ID) type INTEGER .
+  methods SET_POOL_ID
+    importing
+      !INPUT_POOL_ID type INTEGER .
+  methods GET_POOL_NAME
+    returning
+      value(OUTPUT_POOL_NAME) type STRING .
+  methods SET_POOL_NAME
+    importing
+      !INPUT_POOL_NAME type STRING .
+  methods GET_POOL_ADMIN_ID
+    returning
+      value(OUTPUT_POOL_ADMIN_ID) type INTEGER .
+  methods SET_POOL_ADMIN_ID
+    importing
+      !INPUT_POOL_ADMIN_ID type INTEGER .
+  methods GET_POOL_DURATION
+    returning
+      value(OUTPUT_POOL_DURATION) type INTEGER .
+  methods SET_POOL_DURATION
+    importing
+      !INPUT_POOL_DURATION type INTEGER .
+  methods GET_POOL_START_DATE
+    returning
+      value(OUTPUT_POOL_START_DATE) type INTEGER .
+  methods SET_POOL_START_DATE
+    importing
+      !INPUT_POOL_START_DATE type INTEGER .
+  methods GET_POOL_END_DATE
+    returning
+      value(OUTPUT_POOL_END_DATE) type INTEGER .
+  methods SET_POOL_END_DATE
+    importing
+      !INPUT_POOL_END_DATE type INTEGER .
+  methods GET_POOL_STRENGTH
+    returning
+      value(OUTPUT_POOL_STRENGTH) type INTEGER .
+  methods SET_POOL_STRENGTH
+    importing
+      !INPUT_POOL_STRENGTH type INTEGER .
+  methods GET_POOL_COUNTER
+    returning
+      value(OUTPUT_POOL_COUNTER) type INTEGER .
+  methods SET_POOL_COUNTER
+    importing
+      !INPUT_POOL_COUNTER type INTEGER .
+  methods GET_MONTHLY_SHARE
+    returning
+      value(OUTPUT_POOL_MONTHLY_SHARE) type INTEGER .
+  methods SET_MONTHLY_SHARE
+    importing
+      !INPUT_POOL_MONTHLY_SHARE type INTEGER .
+  methods GET_TAKEAWAY
+    returning
+      value(OUTPUT_POOL_TAKEAWAY) type INTEGER .
+  methods SET_TAKEAWAY
+    importing
+      !INPUT_POOL_TAKEAWAY type INTEGER .
+  methods GET_MEETUP_DATE
+    returning
+      value(OUTPUT_POOL_MEETUP_DATE) type INTEGER .
+  methods SET_MEETUP_DATE
+    importing
+      !INPUT_POOL_MEETUP_DATE type INTEGER .
+  methods GET_DEPOSIT_DATE
+    returning
+      value(OUTPUT_POOL_DEPOSIT_DATE) type INTEGER .
+  methods SET_DEPOSIT_DATE
+    importing
+      !INPUT_POOL_DEPOSIT_DATE type INTEGER .
+  methods FIND_MAX_POOL_ID
+    returning
+      value(OUTPUT_POOL_MAXID) type INTEGER .
+  methods INSERT_POOL
+    importing
+      !INPUTPOOLDETAILS type ZPOOLDETAILS .
+  methods GET_POOL
+    importing
+      !INPUT_POOL_ID type /BDL/_LEVEL
+    returning
+      value(OUTPUT_POOL_WA) type ZPOOLDETAILS .
+protected section.
+private section.
+
+  data POOL_ID type /SAPAPO/ANZNK .
+  data POOL_ADMIN_ID type /OSP/DT_DAY .
+  data POOL_NAME type BCS_VISNAME .
+  data POOL_DURATION type INT1 .
+  data POOL_STRENGTH type INT1 .
+  data POOL_START_DATE type INT1 .
+  data POOL_END_DATE type INT1 .
+  data POOL_COUNTER type INT1 .
+  data POOL_MONTHLY_SHARE type INT1 .
+  data POOL_TAKEAWAY type INT1 .
+  data POOL_MEETUP_DATE type INT1 .
+  data POOL_DEPOSIT_DATE type INT1 .
+ENDCLASS.
+
+
+
+CLASS Z_POOL_DETAILS IMPLEMENTATION.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->FIND_MAX_POOL_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_MAXID              TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method FIND_MAX_POOL_ID.
+    data : POOL_MAX_ID TYPE integer.
+
+  select max( POOL_ID ) into POOL_MAX_ID from ZPOOLDETAILS.
+
+    OUTPUT_POOL_MAXID = POOL_MAX_ID + 1.
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_DEPOSIT_DATE
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_DEPOSIT_DATE       TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_DEPOSIT_DATE.
+  OUTPUT_POOL_DEPOSIT_DATE = POOL_DEPOSIT_DATE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_MEETUP_DATE
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_MEETUP_DATE        TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_MEETUP_DATE.
+  OUTPUT_POOL_MEETUP_DATE = POOL_MEETUP_DATE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_MONTHLY_SHARE
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_MONTHLY_SHARE      TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_MONTHLY_SHARE.
+  OUTPUT_POOL_MONTHLY_SHARE = POOL_MONTHLY_SHARE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_POOL
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        /BDL/_LEVEL
+* | [<-()] OUTPUT_POOL_WA                 TYPE        ZPOOLDETAILS
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_POOL.
+
+  SELECT SINGLE * FROM ZPOOLDETAILS INTO OUTPUT_POOL_WA WHERE pool_id = INPUT_POOL_ID.
+
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_POOL_ADMIN_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_ADMIN_ID           TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_POOL_ADMIN_ID.
+  OUTPUT_POOL_ADMIN_ID = POOL_ADMIN_ID.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_POOL_COUNTER
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_COUNTER            TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_POOL_COUNTER.
+  OUTPUT_POOL_COUNTER = POOL_COUNTER.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_POOL_DURATION
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_DURATION           TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_POOL_DURATION.
+  OUTPUT_POOL_DURATION = POOL_DURATION.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_POOL_END_DATE
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_END_DATE           TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_POOL_END_DATE.
+  OUTPUT_POOL_END_DATE = POOL_END_DATE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_POOL_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_ID                 TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_POOL_ID.
+  OUTPUT_POOL_ID = POOL_ID.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_POOL_NAME
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_NAME               TYPE        STRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_POOL_NAME.
+  OUTPUT_POOL_NAME = POOL_NAME.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_POOL_START_DATE
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_START_DATE         TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_POOL_START_DATE.
+  OUTPUT_POOL_START_DATE = POOL_START_DATE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_POOL_STRENGTH
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_STRENGTH           TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_POOL_STRENGTH.
+  OUTPUT_POOL_STRENGTH = POOL_STRENGTH.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->GET_TAKEAWAY
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] OUTPUT_POOL_TAKEAWAY           TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method GET_TAKEAWAY.
+  OUTPUT_POOL_TAKEAWAY = POOL_TAKEAWAY.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->INSERT_POOL
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUTPOOLDETAILS               TYPE        ZPOOLDETAILS
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+METHOD INSERT_POOL.
+
+  DATA: OBJ_POOL_DETAILS TYPE REF TO Z_POOL_DETAILS,
+        WA_NEW_POOL TYPE ZPOOLDETAILS.
+
+  CREATE OBJECT OBJ_POOL_DETAILS.
+
+  WA_NEW_POOL = INPUTPOOLDETAILS.
+
+  WA_NEW_POOL-POOL_ID = OBJ_POOL_DETAILS->FIND_MAX_POOL_ID( ).
+  WA_NEW_POOL-POOL_COUNTER = -1.
+
+
+  INSERT ZPOOLDETAILS FROM WA_NEW_POOL.
+
+
+ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->SET_DEPOSIT_DATE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_DEPOSIT_DATE        TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_DEPOSIT_DATE.
+  POOL_DEPOSIT_DATE = INPUT_POOL_DEPOSIT_DATE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->SET_MEETUP_DATE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_MEETUP_DATE         TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_MEETUP_DATE.
+  POOL_MEETUP_DATE = INPUT_POOL_MEETUP_DATE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->SET_MONTHLY_SHARE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_MONTHLY_SHARE       TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_MONTHLY_SHARE.
+  POOL_MONTHLY_SHARE = INPUT_POOL_MONTHLY_SHARE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->SET_POOL_ADMIN_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ADMIN_ID            TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_POOL_ADMIN_ID.
+  POOL_ADMIN_ID = INPUT_POOL_ADMIN_ID.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->SET_POOL_COUNTER
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_COUNTER             TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_POOL_COUNTER.
+  POOL_COUNTER  = INPUT_POOL_COUNTER.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->SET_POOL_DURATION
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_DURATION            TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_POOL_DURATION.
+  POOL_DURATION = INPUT_POOL_DURATION.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->SET_POOL_END_DATE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_END_DATE            TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_POOL_END_DATE.
+  POOL_END_DATE = INPUT_POOL_END_DATE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->SET_POOL_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_ID                  TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_POOL_ID.
+  POOL_ID = INPUT_POOL_ID.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->SET_POOL_NAME
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_NAME                TYPE        STRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_POOL_NAME.
+  POOL_NAME = INPUT_POOL_NAME.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->SET_POOL_START_DATE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_START_DATE          TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_POOL_START_DATE.
+  POOL_START_DATE = INPUT_POOL_START_DATE.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->SET_POOL_STRENGTH
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_STRENGTH            TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_POOL_STRENGTH.
+  POOL_STRENGTH = INPUT_POOL_STRENGTH.
+endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method Z_POOL_DETAILS->SET_TAKEAWAY
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] INPUT_POOL_TAKEAWAY            TYPE        INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+method SET_TAKEAWAY.
+  POOL_TAKEAWAY = INPUT_POOL_TAKEAWAY.
+endmethod.
+ENDCLASS.
